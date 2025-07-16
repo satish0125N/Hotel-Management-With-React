@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(cors());
 
 // Middleware to log incoming requests to /api
-app.use('/api', (req, res, next) => {
+app.use("/api", (req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
   next();
 });
@@ -48,18 +48,18 @@ app.get("/api/rooms", (req, res) => {
 // API endpoint to get a single room by ID
 app.get("/api/rooms/:id", (req, res) => {
   const roomId = req.params.id;
-  
+
   pool.query("SELECT * FROM rooms WHERE id = ?", [roomId], (err, results) => {
     if (err) {
       console.error("Error fetching room:", err);
       res.status(500).json({ message: "Error fetching room" });
       return;
     }
-    
+
     if (results.length === 0) {
       return res.status(404).json({ message: "Room not found" });
     }
-    
+
     res.json(results[0]);
   });
 });
@@ -67,33 +67,40 @@ app.get("/api/rooms/:id", (req, res) => {
 // API endpoint to update a room
 app.put("/api/rooms/:id", (req, res) => {
   const roomId = req.params.id;
-  const { room_type, capacity, price_per_night, amenities, image_url } = req.body;
-  
+  const { room_type, capacity, price_per_night, amenities, image_url } =
+    req.body;
+
   if (!room_type || !capacity || !price_per_night) {
-    return res.status(400).json({ message: "Room type, capacity, and price are required" });
+    return res
+      .status(400)
+      .json({ message: "Room type, capacity, and price are required" });
   }
-  
+
   const updatedRoom = {
     room_type,
     capacity,
     price_per_night,
     amenities,
-    image_url
+    image_url,
   };
-  
-  pool.query("UPDATE rooms SET ? WHERE id = ?", [updatedRoom, roomId], (err, results) => {
-    if (err) {
-      console.error("Error updating room:", err);
-      res.status(500).json({ message: "Error updating room" });
-      return;
+
+  pool.query(
+    "UPDATE rooms SET ? WHERE id = ?",
+    [updatedRoom, roomId],
+    (err, results) => {
+      if (err) {
+        console.error("Error updating room:", err);
+        res.status(500).json({ message: "Error updating room" });
+        return;
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+
+      res.status(200).json({ message: "Room updated successfully" });
     }
-    
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ message: "Room not found" });
-    }
-    
-    res.status(200).json({ message: "Room updated successfully" });
-  });
+  );
 });
 
 // API endpoint to add a new room
