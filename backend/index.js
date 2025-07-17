@@ -23,7 +23,12 @@ app.use(cors());
 
 // JWT Secret (in production, use environment variable)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+app.get('/', (req, res) => {
+	res.send('Hello from Express on Vercel!');
+});
 
+const serverless = require('serverless-http');
+module.exports.handler = serverless(app);
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
 	const authHeader = req.headers['authorization'];
