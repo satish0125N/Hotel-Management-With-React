@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -8,15 +8,12 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Database connection details
-const dbConfig = {
-	host: 'localhost',
-	user: 'root',
-	password: '',
-	database: 'hotel_mgt',
-};
-
-// Create a MySQL connection pool
-const pool = mysql.createPool(dbConfig);
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL,
+	ssl: {
+		rejectUnauthorized: false,
+	},
+});
 
 // Middleware to parse JSON requests
 app.use(express.json());
