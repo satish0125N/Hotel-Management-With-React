@@ -22,26 +22,25 @@ function Login({ onLogin }) {
 		setLoading(true);
 
 		try {
-			const response = await fetch(
-				`${import.meta.env.VITE_API_URL}/api/users/login`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(formData),
+			const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
 				},
-			);
+				body: JSON.stringify(formData),
+			});
 
-			const data = await response.json();
-			// console.log(data);
-			if (response.ok) {
-				localStorage.setItem('token', data.token);
-				localStorage.setItem('user', JSON.stringify(data.user));
-				onLogin(data.user, data.token);
-			} else {
-				setError(data.message || 'Login failed');
-			}
+			console.log(response);
+
+			// const data = await response.json();
+			// // console.log(data);
+			// if (response.ok) {
+			// 	localStorage.setItem('token', data.token);
+			// 	localStorage.setItem('user', JSON.stringify(data.user));
+			// 	onLogin(data.user, data.token);
+			// } else {
+			// 	setError(data.message || 'Login failed');
+			// }
 		} catch (error) {
 			setError('Network error. Please try again.');
 			console.error('Login error:', error);
