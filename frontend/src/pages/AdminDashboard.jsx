@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AddRoom from './AddRoom';
+import AddRoom from '../components/AddRoom';
 
 function AdminDashboard() {
 	const [activeTab, setActiveTab] = useState('overview');
@@ -31,6 +31,10 @@ function AdminDashboard() {
 				fetch(`${import.meta.env.VITE_API_URL}/api/rooms`, { headers }),
 			]);
 
+			if (!bookingsRes.ok || !roomsRes.ok) {
+				throw new Error('Failed to fetch data');
+			}
+
 			const bookingsData = await bookingsRes.json();
 			const roomsData = await roomsRes.json();
 
@@ -38,22 +42,46 @@ function AdminDashboard() {
 			setRooms(roomsData);
 
 			// Calculate stats
-			const totalRevenue = bookingsData.reduce(
-				(sum, booking) => sum + parseFloat(booking.total_price),
-				0,
-			);
+			// const totalRevenue = bookingsData.reduce(
+			// 	(sum, booking) => sum + parseFloat(booking.total_price),
+			// 	0,
+			// );
+			// const occupancyRate =
+			// 	roomsData.length > 0 ? (bookingsData.length / roomsData.length) * 100 : 0;
+
+			// setStats({
+			// 	totalRooms: roomsData.length,
+			// 	totalBookings: bookingsData.length,
+			// 	totalRevenue,
+			// 	occupancyRate,
+			// });
+			const totalRevenue = Array.isArray(bookingsData)
+				? bookingsData.reduce(
+						(sum, booking) => sum + parseFloat(booking.total_price),
+						0,
+				  )
+				: 0;
+
 			const occupancyRate =
-				roomsData.length > 0 ? (bookingsData.length / roomsData.length) * 100 : 0;
+				Array.isArray(roomsData) && roomsData.length > 0
+					? (bookingsData.length / roomsData.length) * 100
+					: 0;
 
 			setStats({
-				totalRooms: roomsData.length,
-				totalBookings: bookingsData.length,
+				totalRooms: roomsData.length || 0,
+				totalBookings: bookingsData.length || 0,
 				totalRevenue,
 				occupancyRate,
 			});
 		} catch (error) {
 			console.error('Error fetching data:', error);
 		} finally {
+			setStats((prev) => ({
+				totalRooms: prev.totalRooms || 0,
+				totalBookings: prev.totalBookings || 0,
+				totalRevenue: prev.totalRevenue || 0,
+				occupancyRate: prev.occupancyRate || 0,
+			}));
 			setLoading(false);
 		}
 	};
@@ -148,10 +176,20 @@ function AdminDashboard() {
 	}
 
 	return (
-		<div className='bg-white rounded-lg shadow-lg p-4 md:p-6 h-full flex flex-col'>
-			<h1 className='text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6 flex-shrink-0'>
-				Admin Dashboard
-			</h1>
+		<div className='bg-white rounded-lg p-4 md:p-6 h-full flex flex-col'>
+			<div className='flex justify-between'>
+				<h1 className='text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6 flex-shrink-0'>
+					Admin Dashboard
+				</h1>
+				<button
+					onClick={() => {
+						localStorage.removeItem('token');
+						window.location.href = '/';
+					}}
+					className='ml-auto bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600'>
+					Logout
+				</button>
+			</div>
 
 			{/* Tab Navigation */}
 			<div className='border-b border-gray-200 mb-4 md:mb-6 flex-shrink-0'>
@@ -244,11 +282,11 @@ function AdminDashboard() {
 							<tbody className='bg-white divide-y divide-gray-200'>
 								{bookings.map((booking) => (
 									<tr key={booking.id}>
-										<td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>
-											{booking.username}
+										<td className='px-6 py-4 whitespace-nowrap text-sm capitalize  font-medium text-gray-900'>
+											{booking.user?.username} {/* Room ka naam */}
 										</td>
 										<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-											{booking.room_type}
+											{booking.room?.room_type} {/* User ka naam */}
 										</td>
 										<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
 											{formatDate(booking.checkin_date)}

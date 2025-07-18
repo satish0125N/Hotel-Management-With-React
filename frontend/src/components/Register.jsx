@@ -1,226 +1,150 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function Register({ onRegister, onSwitchToLogin }) {
+function Register() {
 	const [formData, setFormData] = useState({
 		username: '',
-		password: '',
 		email: '',
+		password: '',
 		full_name: '',
 		phone: '',
 		address: '',
-		date_of_birth: '',
 	});
 	const [error, setError] = useState('');
-	const [loading, setLoading] = useState(false);
+	const [success, setSuccess] = useState(false);
+	const navigate = useNavigate();
 
 	const handleChange = (e) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
+		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError('');
-		setLoading(true);
+
+		if (
+			!formData.username ||
+			!formData.email ||
+			!formData.password ||
+			!formData.full_name
+		) {
+			setError('Please fill all required fields');
+			return;
+		}
 
 		try {
-			const response = await fetch(
-				`${import.meta.env.VITE_API_URL}/api/users/register`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(formData),
-				},
-			);
+			const res = await fetch(`${import.meta.env.VITE_API_URL}/api/register`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(formData),
+			});
 
-			const data = await response.json();
-
-			if (response.ok) {
-				localStorage.setItem('token', data.token);
-				localStorage.setItem('user', JSON.stringify(data.user));
-				onRegister(data.user, data.token);
-			} else {
-				setError(data.message || 'Registration failed');
+			if (!res.ok) {
+				const data = await res.json();
+				throw new Error(data.message || 'Registration failed');
 			}
-		} catch (error) {
-			setError('Network error. Please try again.');
-			console.error('Registration error:', error);
-		} finally {
-			setLoading(false);
+
+			setSuccess(true);
+		} catch (err) {
+			setError(err.message);
 		}
 	};
 
+	const handleLoginRedirect = () => {
+		navigate('/login');
+	};
+
 	return (
-		<div className='space-y-8'>
-			<div className='max-w-md w-full space-y-8'>
-				<div className='relative'>
-					<button
-						onClick={onSwitchToLogin}
-						className='absolute top-0 right-0 text-gray-400 hover:text-gray-600'>
-						<svg
-							className='h-6 w-6'
-							fill='none'
-							stroke='currentColor'
-							viewBox='0 0 24 24'>
-							<path
-								strokeLinecap='round'
-								strokeLinejoin='round'
-								strokeWidth={2}
-								d='M6 18L18 6M6 6l12 12'
-							/>
-						</svg>
-					</button>
-					<h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
-						Create your account
-					</h2>
-				</div>
-				<form className='mt-8 space-y-6' onSubmit={handleSubmit}>
-					{error && (
-						<div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
-							{error}
-						</div>
-					)}
-					<div className='space-y-4'>
-						<div>
-							<label
-								htmlFor='username'
-								className='block text-sm font-medium text-gray-700'>
-								Username
-							</label>
+		<div className='flex items-center justify-center min-h-screen bg-gray-100'>
+			<div className='bg-white p-8 rounded-2xl shadow-lg w-full max-w-md'>
+				{!success ? (
+					<>
+						<button
+							onClick={() => navigate('/login')}
+							className='text-blue-500 hover:text-blue-700 mb-4 flex items-center gap-1 text-sm'>
+							<span className='text-lg'>&larr;</span> Back to Login
+						</button>
+
+						<h2 className='text-2xl font-bold text-center text-gray-800 mb-6'>
+							Register Your Account
+						</h2>
+
+						<form onSubmit={handleSubmit} className='space-y-4'>
 							<input
-								id='username'
-								name='username'
 								type='text'
-								required
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-								placeholder='Username'
+								name='username'
+								placeholder='Username *'
 								value={formData.username}
 								onChange={handleChange}
+								className='input'
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor='email'
-								className='block text-sm font-medium text-gray-700'>
-								Email
-							</label>
 							<input
-								id='email'
-								name='email'
 								type='email'
-								required
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-								placeholder='Email'
+								name='email'
+								placeholder='Email *'
 								value={formData.email}
 								onChange={handleChange}
+								className='input'
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor='full_name'
-								className='block text-sm font-medium text-gray-700'>
-								Full Name
-							</label>
 							<input
-								id='full_name'
-								name='full_name'
+								type='password'
+								name='password'
+								placeholder='Password *'
+								value={formData.password}
+								onChange={handleChange}
+								className='input'
+							/>
+							<input
 								type='text'
-								required
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-								placeholder='Full Name'
+								name='full_name'
+								placeholder='Full Name *'
 								value={formData.full_name}
 								onChange={handleChange}
+								className='input'
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor='phone'
-								className='block text-sm font-medium text-gray-700'>
-								Phone
-							</label>
 							<input
-								id='phone'
+								type='text'
 								name='phone'
-								type='tel'
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
 								placeholder='Phone'
 								value={formData.phone}
 								onChange={handleChange}
+								className='input'
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor='address'
-								className='block text-sm font-medium text-gray-700'>
-								Address
-							</label>
-							<textarea
-								id='address'
+							<input
+								type='text'
 								name='address'
-								rows='3'
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
 								placeholder='Address'
 								value={formData.address}
 								onChange={handleChange}
+								className='input'
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor='date_of_birth'
-								className='block text-sm font-medium text-gray-700'>
-								Date of Birth
-							</label>
-							<input
-								id='date_of_birth'
-								name='date_of_birth'
-								type='date'
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-								value={formData.date_of_birth}
-								onChange={handleChange}
-							/>
-						</div>
-						<div>
-							<label
-								htmlFor='password'
-								className='block text-sm font-medium text-gray-700'>
-								Password
-							</label>
-							<input
-								id='password'
-								name='password'
-								type='password'
-								required
-								className='mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-								placeholder='Password'
-								value={formData.password}
-								onChange={handleChange}
-							/>
-						</div>
-					</div>
 
-					<div>
-						<button
-							type='submit'
-							disabled={loading}
-							className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50'>
-							{loading ? 'Creating account...' : 'Create account'}
-						</button>
-					</div>
+							{error && <p className='text-red-500 text-sm'>{error}</p>}
 
+							<button
+								type='submit'
+								className='w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition'>
+								Register
+							</button>
+						</form>
+					</>
+				) : (
 					<div className='text-center'>
+						<h2 className='text-2xl font-bold text-green-600 mb-4'>
+							Registration Successful!
+						</h2>
+						<h3 className='mb-4'> Please remember your </h3>
+						<p className='mb-4'>
+							<strong>Username: {formData.username}</strong> and{' '}
+							<strong>Password: {formData.password} </strong>
+						</p>
 						<button
-							type='button'
-							onClick={onSwitchToLogin}
-							className='text-indigo-600 hover:text-indigo-500'>
-							Already have an account? Sign in
+							onClick={handleLoginRedirect}
+							className='bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition'>
+							Proceed to Login
 						</button>
 					</div>
-				</form>
+				)}
 			</div>
 		</div>
 	);
