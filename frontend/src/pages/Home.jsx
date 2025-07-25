@@ -6,6 +6,10 @@ function Home() {
 	const [loading, setLoading] = useState(true);
 	const navigate = useNavigate();
 
+	const BASE_URL =
+	import.meta.env.VITE_API_URL || 'https://hotel-backend-woad.vercel.app';
+	const res = await fetch(`${BASE_URL}/api/public-rooms`);
+	console.log('++++' + res);
 	useEffect(() => {
 		const fetchRooms = async () => {
 			try {
