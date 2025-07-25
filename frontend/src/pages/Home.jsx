@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
 function Home() {
 	const [rooms, setRooms] = useState([]);
 	const [loading, setLoading] = useState(true);
