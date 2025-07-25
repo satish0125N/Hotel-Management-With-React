@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+
 function Home() {
 	const [rooms, setRooms] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const navigate = useNavigate();
 
-	const BASE_URL =
-	import.meta.env.VITE_API_URL || 'https://hotel-backend-woad.vercel.app';
-	const res = await fetch(`${BASE_URL}/api/public-rooms`);
-	console.log('++++' + res);
 	useEffect(() => {
 		const fetchRooms = async () => {
 			try {
